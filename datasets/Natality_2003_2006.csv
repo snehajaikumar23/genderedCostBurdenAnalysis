@@ -1,0 +1,32 @@
+"Notes","Age of Mother 9","Age of Mother 9 Code",Births
+,"Under 15 years","15",26560
+,"15-19 years","15-19",1679871
+,"20-24 years","20-24",4187584
+,"25-29 years","25-29",4504346
+,"30-34 years","30-34",3842158
+,"35-39 years","35-39",1925020
+,"40-44 years","40-44",414890
+,"45-49 years","45-49",23869
+,"50 years and over","50+",1608
+"Total",,,16605906
+"---"
+"Dataset: Natality, 2003-2006"
+"Query Parameters:"
+"Group By: Age of Mother 9"
+"Show Totals: True"
+"Show Zero Values: False"
+"Show Suppressed: False"
+"Calculate Rates Per: 1,000"
+"Population Option: No populations shown because rates were not selected."
+"---"
+"Help: See http://wonder.cdc.gov/wonder/help/natality.html for more information."
+"---"
+"Query Date: Dec 5, 2025 1:11:04 PM"
+"---"
+"Suggested Citation: Centers for Disease Control and Prevention, National Center for Health Statistics. National Vital Statistics"
+"System, Natality on CDC WONDER Online Database. Data are from the Natality Records 2003-2006, as compiled from data provided by"
+"the 57 vital statistics jurisdictions through the Vital Statistics Cooperative Program. Accessed at"
+"http://wonder.cdc.gov/natality-v2006.html on Dec 5, 2025 1:11:04 PM"
+"---"
+Caveats:
+"1. Each birth record represents one liveborn infant."
