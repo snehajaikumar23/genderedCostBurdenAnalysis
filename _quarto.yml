@@ -8,11 +8,11 @@ execute:
   message: false
 
 book:
-  title: "YOUR PROJECT TITLE"
+  title: "Quantifying Gendered Cost Burdens in Everyday Spending and Healthcare - Going Beyond the Pink Tax"
   author:
-    - AUTHOR1 (UNI1)
-    - AUTHOR2 (UNI2)
-  repo-url: https://github.com/YOUR_GITHUB_ACCOUNT/REPO_NAME
+    - Sneha Jaikumar (sj3474)
+    - Kaushiki Singh (ks4402)
+  repo-url: https://github.com/snehajaikumar23/genderedCostBurdenAnalysis
   date: today
   page-footer:
     right: |

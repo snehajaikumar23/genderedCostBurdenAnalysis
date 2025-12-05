@@ -1,0 +1,228 @@
+# Results
+
+```{r}
+library(tidyverse)
+library(purrr)
+library(stringr)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# Load consumer expenditure data
+consumer_expenditure_females_2019 <- read_excel('/Users/snehajaikumar/EDAV/cu-singles-by-age-single-females-2019.xlsx')
+
+header <- as.character(consumer_expenditure_females_2019[2, ])
+
+header <- header |>
+  str_replace_all("\\r\\n", " ") |>  # replace CRLF newlines with a space
+  str_squish() 
+
+colnames(consumer_expenditure_females_2019) <- header
+
+start_main <- 47
+start_sources <- which(grepl("Sources of income", consumer_expenditure_females_2019$Item))
+start_addenda <- which(grepl("Addenda", consumer_expenditure_females_2019$Item))
+
+df_main    <- consumer_expenditure_females_2019[start_main:(start_sources - 1), ]
+df_sources <- consumer_expenditure_females_2019[start_sources:(start_addenda - 1), ]
+df_addenda <- consumer_expenditure_females_2019[start_addenda:219, ]
+
+major_groups_main <- c(
+  "Food", "Housing", "Apparel and services", "Transportation", "Healthcare", "Entertainment","Education","Alcoholic beverages","Reading","Cash contributions","Personal insurance and pensions", "Tobacco products and smoking supplies", "Miscellaneous","Personal care products and services"
+)
+
+major_groups_sources <- c(
+  "Money income before taxes", "Personal taxes (contains some imputed values)", "Income after taxes"
+)
+
+major_groups_addenda <- c(
+  "Gifts of goods and services, total", "Net change in total assets and liabilities", "Other financial information:"
+)
+
+numeric_cols <- setdiff(names(df_main), "Item")
+df_main_clean <- df_main |>
+  mutate(
+    level1 = if_else(Item %in% major_groups_main, Item, NA_character_)
+  ) |>
+  tidyr::fill(level1, .direction = "down") |>
+  filter(rowSums(!is.na(across(all_of(numeric_cols)))) > 0)
+
+df_sources_clean <- df_sources |>
+  mutate(
+    level1 = if_else(Item %in% major_groups_sources, Item, NA_character_)
+  ) |>
+  tidyr::fill(level1, .direction = "down") |>
+  filter(rowSums(!is.na(across(all_of(numeric_cols)))) > 0)
+
+df_addenda_clean <- df_addenda |>
+  mutate(
+    level1 = if_else(Item %in% major_groups_addenda, Item, NA_character_)
+  ) |>
+  tidyr::fill(level1, .direction = "down") |>
+  filter(rowSums(!is.na(across(all_of(numeric_cols)))) > 0)
+
+
+df_main_clean
+df_sources_clean 
+df_addenda_clean
+
+```
+
+```{r}
+# Clean each table by removing commas, letters, and quotes, as well as making values numeric
+df_main_clean <- df_main_clean |>
+  mutate(across(
+    -c(Item, level1),  # numeric columns only
+    ~ {
+      x <- .
+
+      # Remove commas in numbers
+      x <- str_replace_all(x, ",", "")
+
+      # Replace pure letters (a, b, c) with NA
+      x <- ifelse(str_detect(x, "^[abc]$"), NA, x)
+
+      # For values like "c/ 13" extract the numeric part
+      x <- str_replace(x, "^[abc]/\\s*", "")
+
+      # Convert to numeric
+      as.numeric(x)
+    }
+  ))
+
+df_sources_clean <- df_sources_clean |>
+  mutate(across(
+    -c(Item, level1),  # numeric columns only
+    ~ {
+      x <- .
+
+      # Remove commas in numbers
+      x <- str_replace_all(x, ",", "")
+
+      # Replace pure letters (a, b, c) with NA
+      x <- ifelse(str_detect(x, "^[abc]$"), NA, x)
+
+      # For values like "c/ 13" extract the numeric part
+      x <- str_replace(x, "^[abc]/\\s*", "")
+
+      # Convert to numeric
+      as.numeric(x)
+    }
+  ))
+
+df_addenda_clean <- df_addenda_clean |>
+  mutate(across(
+    -c(Item, level1),  # numeric columns only
+    ~ {
+      x <- .
+
+      # Remove commas in numbers
+      x <- str_replace_all(x, ",", "")
+
+      # Replace pure letters (a, b, c) with NA
+      x <- ifelse(str_detect(x, "^[abc]$"), NA, x)
+
+      # For values like "c/ 13" extract the numeric part
+      x <- str_replace(x, "^[abc]/\\s*", "")
+
+      # Convert to numeric
+      as.numeric(x)
+    }
+  ))
+```
+
+
+```{r}
+df_top <- df_main_clean |>
+  filter(Item == level1)
+
+df_top_long <- df_top |>
+  pivot_longer(
+    cols = -c(Item, level1),
+    names_to = "age_group",
+    values_to = "expenditure"
+  ) 
+
+df_top_long_all_females <- df_top_long |>
+  filter(age_group == "All single females")
+
+# FIRST PLOT
+ggplot(df_top_long_all_females, aes(x = reorder(level1, expenditure),
+                        y = expenditure)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Total Expenditures by Category (Single Females, 2018–2019)",
+       x = "Category", y = "Annual Spending ($)")
+
+df_top_long <- df_top_long |>
+  filter(age_group != "All single females") |>
+  mutate(
+    age_group = factor(
+      age_group,
+      levels = c(
+        "Under 25 years",
+        "25-34 years",
+        "35-44 years",
+        "45-54 years",
+        "55-64 years",
+        "65 years and older"
+      ),
+      ordered = TRUE
+    )
+  )
+```
+
+```{r}
+# SECOND PLOT
+ggplot(df_top_long, aes(x = age_group, y = expenditure, fill = level1)) +
+  geom_col(position = "dodge") +
+  labs(title = "Expenditures by Age Group",
+       x = "", y = "Annual Spending ($)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+df_prop <- df_top_long |>
+  group_by(age_group) |>
+  mutate(prop = expenditure / sum(expenditure)) |>
+  ungroup()
+
+# THIRD PLOT
+ggplot(df_prop, aes(x = age_group, y = prop, fill = level1)) +
+  geom_bar(stat = "identity") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title = "Budget Composition by Age Group (Single Females, 2018–2019)",
+       x = "Age Group", y = "Percent of Total Budget") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+df_food <- df_main_clean |>
+  filter(Item %in% c("Food at home", "Food away from home")) |>
+  pivot_longer(cols = -c(Item, level1),
+               names_to = "age_group",
+               values_to = "expenditure") |>
+  filter(age_group != "All single females") |>
+  mutate(
+    age_group = factor(
+      age_group,
+      levels = c(
+        "Under 25 years",
+        "25-34 years",
+        "35-44 years",
+        "45-54 years",
+        "55-64 years",
+        "65 years and older"
+      ),
+      ordered = TRUE
+    )
+  )
+
+#FOURTH PLOT
+ggplot(df_food, aes(age_group, expenditure, color = Item, group = Item)) +
+  geom_line(size = 1.3) +
+  geom_point(size = 3) +
+  labs(title = "Food at Home vs Food Away From Home",
+       y = "Annual Spending ($)", x = "") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
