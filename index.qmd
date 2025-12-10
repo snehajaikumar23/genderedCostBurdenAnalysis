@@ -5,3 +5,16 @@ Insert introduction here...
 Our motivation to choose this topic came from a series of personal experiences and the book, "Invisible Women: Exploring Data Bias in a World Designed for Men." In the book, the author uses data analysis to prove how women are affected by the patriarchy on a deeper level, how the "default male" property of the patriarchy has led to data gaps in centuries old data consequently leading to male oriented findings which are also treated as the basis for the female population.
 
 
+- leave out glimse(), print(), head()
+- dont use cat() or print() for output
+- use inline code piece 
+```{r}
+x<-7
+```
+
+the val of `x` is `r x`.
+
+- label including units
+- no scientific notation or long labels 
+- only use color when needed
+- could put categorical label on y axis if needed
