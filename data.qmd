@@ -2,4 +2,24 @@
 
 ## Description
 
+ 2.1 Technical description
+
+Identify one or more data sources (see II. D. above) that you propose to draw on for the project. For each, describe how the data are collected and by whom. Describe the format of the data, the frequency of updates, dimensions, and any other relevant information. Note any issues / problems with the data, either known or that you discover.  Carefully document your sources with links to the precise data sources that you used. If that is not possible (for example if your data is not available online, then explain that clearly.)
+
+(suggested length: one paragraph)
+
+https://www.cms.gov/data-research/statistics-trends-and-reports/national-health-expenditure-data/age-and-sex
+
+
+https://www.bls.gov/cex/tables/cross-tab/mean.htm#cu-singlesbyage
+
+https://wonder.cdc.gov/natality.html for pregnancy rate
+
+
 ## Missing value analysis
+
+2.2 Missing value analysis
+
+Describe any patterns you discover in missing values. If no values are missing, graphs should still be included showing that.
+
+(suggested: 2 graphs plus commentary)

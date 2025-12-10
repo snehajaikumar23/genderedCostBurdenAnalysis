@@ -1,1 +1,6 @@
 # Conclusion
+
+
+Discuss: main takeaways of your exploration, limitations, future directions, lessons learned.
+
+(suggested length: one paragraph)
