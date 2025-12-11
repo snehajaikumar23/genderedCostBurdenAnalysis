@@ -135,7 +135,7 @@ df_summary <- df_clean |>
     n = n()
   )
 
-df_summary
+#df_summary
 
 
 
@@ -143,7 +143,7 @@ df_summary
 
 \
 
-bump chart \
+bump chart\
 \
 
 ```{r}
@@ -183,6 +183,22 @@ while convenience is a common factor for everyone, women tend to choose proximit
 Box plots
 
 ```{r}
+
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+df_spend_long <- df_clean |>
+  select(gender, hygiene, apparel, rent) |>
+  pivot_longer(cols = c(hygiene, apparel, rent),
+               names_to = "category",
+               values_to = "spend") |>
+  mutate(
+    category = factor(category,
+                      levels = c("apparel", "hygiene", "rent"),
+                      labels = c("Apparel", "Hygiene / Care", "Rent"))
+  )
+
 ggplot(df_spend_long, aes(x = gender, y = spend, color = gender)) +
   geom_jitter(width = 0.12, alpha = 0.6, size = 2) +    # readable but not heavy
   geom_boxplot(width = 0.28, fill = NA, color = "black", outlier.shape = NA) +
