@@ -92,42 +92,124 @@ ggplot(df7_gapplot, aes(y = AgeGroup)) +
 
 ```
 
-out of pocket
+dumbell for total
 
 ```{r}
-df_avg71 <- df_long71 |>
+
+
+
+df_avg7 <- df_long7 |>
   group_by(AgeGroup) |>
   summarise(
     AvgMale = mean(Male, na.rm = TRUE),
     AvgFemale = mean(Female, na.rm = TRUE)
   )
 
-ggplot(df_avg71, aes(y = AgeGroup)) +
+df_avg7_long <- df_avg7 |>
+  tidyr::pivot_longer(
+    cols = c(AvgMale, AvgFemale),
+    names_to = "Sex",
+    values_to = "AvgSpend"
+  ) |>
+  mutate(
+    Sex = recode(Sex,
+                 "AvgMale" = "Male",
+                 "AvgFemale" = "Female")
+  )
+
+
+
+ggplot(df_avg7_long, aes(y = AgeGroup, x = AvgSpend, color = Sex)) +
+
   geom_segment(
-    aes(x = AvgMale, xend = AvgFemale),
-    color = "gray60", linewidth = 2
+    data = df_avg7,
+    aes(x = AvgMale, xend = AvgFemale,
+        y = AgeGroup, yend = AgeGroup),
+    color = "gray70", linewidth = 2
   ) +
-  geom_point(aes(x = AvgMale), color = "#3182bd", size = 5) +
-  geom_point(aes(x = AvgFemale), color = "#cb181d", size = 5) +
+
+  geom_point(size = 5) +
+
+  scale_color_manual(
+    values = c("Male" = "#3182bd", "Female" = "#cb181d"),
+    name = "Sex"
+  ) +
+
   scale_x_continuous(labels = label_comma()) +
+
+  labs(
+    title = "Women Pay More in Total Healthcare Spending Across All Age Groups",
+    subtitle = "Average total per-capita health care spending, 2002–2020",
+    x = "Average Spending (USD)",
+    y = ""
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.line.x = element_line(color = "black"),
+    axis.ticks.x = element_line(color = "black"),
+    legend.position = "right"
+  )
+
+```
+
+out of pocket
+
+```{r}
+
+library(ggplot2)
+library(dplyr)
+library(scales)
+
+# Create long format with Sex column for easy legend
+df_avg71_long <- df_avg71 |>
+  tidyr::pivot_longer(
+    cols = c(AvgMale, AvgFemale),
+    names_to = "Sex",
+    values_to = "AvgSpend"
+  ) |>
+  mutate(
+    Sex = recode(Sex,
+                 "AvgMale" = "Male",
+                 "AvgFemale" = "Female")
+  )
+
+ggplot(df_avg71_long, aes(y = AgeGroup, x = AvgSpend, color = Sex)) +
+
+  # Dumbbell connecting segment
+  geom_segment(
+    data = df_avg71,
+    aes(x = AvgMale, xend = AvgFemale,
+        y = AgeGroup, yend = AgeGroup),
+    color = "gray70", linewidth = 2
+  ) +
+
+  # Points for each sex
+  geom_point(size = 5) +
+
+  # Nice legend colors
+  scale_color_manual(
+    values = c("Male" = "#3182bd", "Female" = "#cb181d"),
+    name = "Sex"
+  ) +
+
+  scale_x_continuous(labels = label_comma()) +
+
   labs(
     title = "Women Consistently Pay More Out-of-Pocket at Every Age",
     subtitle = "Average per-capita out-of-pocket spending, 2002–2020",
     x = "Average Spending (USD)",
     y = ""
   ) +
-  theme_minimal(base_size = 1) +
+  theme_minimal(base_size = 14) +
   theme(
     axis.line.x = element_line(color = "black"),
-    axis.ticks.x = element_line(color = "black")
+    axis.ticks.x = element_line(color = "black"),
+    legend.position = "right"
   )
 
 
 
-
 ```
-
-Table 7 - total
 
 ```{r}
 # ===============================
