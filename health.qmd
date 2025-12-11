@@ -290,6 +290,10 @@ p <- ggplot(df_gap_7_1, aes(x = Year, y = Gap, color = AgeGroup)) +
   geom_line(linewidth = 1.3) +
   geom_point(size = 2) +
   geom_hline(yintercept = 0, color = "black", linewidth = 1) +
+  scale_x_continuous(
+    breaks = unique(df_gap_7_1$Year),     # ensures 2002, 2004, ..., 2020 appear
+    limits = range(df_gap_7_1$Year)       # prevents plotly from shifting to 0
+  ) +
   labs(
     title = "Out-of-Pocket Spending Gender Gap Over Time",
     subtitle = "Values represent Female − Male per-capita out-of-pocket spending",
@@ -353,7 +357,7 @@ births_clean <- births_raw |>
   mutate(
     Age = factor(
       Age,
-      levels = c("< 15","15-19","20-24","25-29","30-34",
+      levels = c("<15","15-19","20-24","25-29","30-34",
                  "35-39","40-44","45-49","50<")
     )
   )
@@ -369,19 +373,6 @@ ggplot(births_clean, aes(x = Age, y = Births)) +
   ) +
   theme_minimal(base_size = 16)
 
-
-# line
-ggplot(births_clean, aes(x = Age, y = Births, group = 1)) +
-  geom_line(linewidth = 1.4, color = "red") +
-  geom_point(size = 3) +
-  scale_y_continuous(labels = function(x) paste0(x / 1e6, "M")) +
-  labs(
-    title = "Birth Distribution by Maternal Age",
-    subtitle = "Births peak at ages 25–34",
-    x = "Maternal Age Group",
-    y = "Total Births (Millions)"
-  ) +
-  theme_minimal(base_size = 16)
 
 
 ```

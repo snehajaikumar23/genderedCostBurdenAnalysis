@@ -183,48 +183,62 @@ while convenience is a common factor for everyone, women tend to choose proximit
 Box plots
 
 ```{r}
-
 library(ggplot2)
 library(dplyr)
 library(tidyr)
+library(forcats)
 
+# 1. Long data -----------------------------------------------------------
 df_spend_long <- df_clean |>
   select(gender, hygiene, apparel, rent) |>
-  pivot_longer(cols = c(hygiene, apparel, rent),
-               names_to = "category",
-               values_to = "spend") |>
+  pivot_longer(
+    cols = c(hygiene, apparel, rent),
+    names_to = "category",
+    values_to = "spend"
+  ) |>
   mutate(
-    category = factor(category,
-                      levels = c("apparel", "hygiene", "rent"),
-                      labels = c("Apparel", "Hygiene / Care", "Rent"))
+    category = factor(
+      category,
+      levels = c("apparel", "hygiene", "rent"),
+      labels = c("Apparel", "Hygiene / Care", "Rent")
+    )
   )
 
+# 2. Compute medians per category ----------------------------------------
+median_order <- df_spend_long |>
+  group_by(category) |>
+  summarise(med = median(spend, na.rm = TRUE)) |>
+  arrange(desc(med))
+
+# Reorder category factor based on **descending medians**
+df_spend_long <- df_spend_long |>
+  mutate(category = fct_reorder(category, spend, .fun = median, .desc = TRUE))
+
+# 3. Plot -----------------------------------------------------------------
 ggplot(df_spend_long, aes(x = gender, y = spend, color = gender)) +
-  geom_jitter(width = 0.12, alpha = 0.6, size = 2) +    # readable but not heavy
+  geom_jitter(width = 0.12, alpha = 0.6, size = 2) +
   geom_boxplot(width = 0.28, fill = NA, color = "black", outlier.shape = NA) +
   
-  facet_wrap(~ category, scales = "free_y", nrow = 1) +   # keep all 3 categories in 1 row
+  facet_wrap(~ category, scales = "free_y", nrow = 1) +
   
   scale_color_manual(values = c("Female" = "#E85A84", "Male" = "#3A6FA8")) +
   
   labs(
     title = "Monthly Spending by Gender",
-    subtitle = "Women spend more on hygiene and apparel; rent varies by individual circumstance",
     x = "Gender",
     y = "Spending (USD)"
   ) +
   
-  theme_minimal(base_size = 12) +                         # normal readable text
+  theme_minimal(base_size = 12) +
   theme(
     legend.position = "none",
-    strip.text = element_text(size = 13, face = "bold"), # category labels
-    plot.title = element_text(size = 18, face = "bold"), # doesn't crowd the plot
+    strip.text = element_text(size = 13, face = "bold"),
+    plot.title = element_text(size = 18, face = "bold"),
     plot.subtitle = element_text(size = 12),
     axis.text = element_text(size = 11),
     axis.title = element_text(size = 12),
-    panel.spacing = unit(1, "lines")                     # adds space between panels
+    panel.spacing = unit(1, "lines")
   )
-
 
 ```
 
