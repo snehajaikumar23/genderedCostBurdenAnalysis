@@ -33,7 +33,7 @@ library(tidyverse)
 library(janitor)
 
 
-files <- list.files("/Users/snehajaikumar/EDAV/final_datasets", pattern = "*.xlsx", full.names = TRUE)
+files <- list.files("datasets/c", pattern = "*.xlsx", full.names = TRUE)
 manual_header <- c(
   "Item",
   "All",
