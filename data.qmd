@@ -29,6 +29,8 @@ We filled the form on the website to request two CSVs of birth count data by age
 ```{r}
 # Load in all 22 datasets for single females and males from 2009-2019
 library(tidyverse)
+#install.packages("readxl")
+library(readxl)
 # install.packages("janitor")
 library(janitor)
 
