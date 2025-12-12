@@ -1325,7 +1325,46 @@ df_summary <- df_clean |>
 ```
 
 
+While apparel and hygiene costs are relatively similar across both genders, we see more extreme outliers in the higher range for women. We also see that there is more variability in rent for females compared to males. These extra outliers in the $2,500-3,000 range suggest that more women may be incentivized to spend extra on rent if it means prioritizing safety. We will take a look at this more in the next plot.
 
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Compute average priority rank for each gender + factor
+df_bump <- df_rank_long |>
+  group_by(gender, factor) |>
+  summarise(mean_rank = mean(rank, na.rm = TRUE), .groups = "drop") |>
+  group_by(gender) |>
+  mutate(priority = rank(mean_rank, ties.method = "first")) |>  # 1 = highest priority
+  ungroup()
+
+ggplot(df_bump, aes(x = gender, y = priority, group = factor, color = factor)) +
+  geom_line(linewidth = 1.3) +
+  geom_point(size = 4) +
+  scale_y_reverse(breaks = 1:6) +   # 1 at top
+  labs(
+    title = "Priority Ranking of Housing Factors by Gender",
+    subtitle = "1 = highest priority • 6 = lowest priority",
+    x = "Gender",
+    y = "Priority Rank",
+    color = "Housing Factor"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "right",
+    panel.grid.minor = element_blank()
+  )
+```
+Women valuing proximity to campus and neighborhood safety aligns with higher rents. Women may prioritize being closer to school or in safer neighborhoods, even if it’s more expensive, which explains the observed high outliers.
+
+Surprisingly, building security was ranked higher among men. Women may consider neighborhood safety more important than the building’s security features (cameras, doormen), whereas men might feel neighborhood safety is less critical and focus more on tangible security measures.
+
+
+---- x ----
+
+Zarulli V, Barthold Jones J, Oksuzyan A, et al. Women live longer than men even during severe famines and epidemics. Proc Natl Acad Sci U S A. 2018;115(4):E832–E840. doi:10.1073/pnas.1701535115
 
 
 
