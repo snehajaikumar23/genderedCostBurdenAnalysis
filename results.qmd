@@ -1,4 +1,7 @@
 # Results
+  In this section, we present evidence of gendered cost burdens using Consumer Expenditure Survey (CES) for single males and females from 2009-2019, supplemented by healthcare data by gender and student survey data. Our results reveal consistent patterns in gendered spending and several noteworthy divergences in individual years and expenditure groups. Altogether, these patterns hint at ways gender shapes financial burdens across essential and discretionary spending categories.
+
+Our first set of analyses compared total expenditures across major spending categories for single male and females in the 2009-2019 CES data. We specifically chose this time range as it was between the Great Recession and COVID-19, two events that play a strong influence on consumer spending and financial stability. We first wanted to get a high level picture of spending differences. 
 
 
 ```{r}
@@ -77,11 +80,21 @@ df_main <- map_df(files, read_cex_file)
 # df_gifts <- df_all[gift_start:gift_end, ]
 # df_main <- df_all[-(gift_start:gift_end), ]
 
-df_main
-
 
 
 ```
+
+We observed that women consistently spend more in essential categories tied to health, personal care, and household expenses, whereas men tend to have higher spending patterns on more discretionary categories. This initial foundation set the stage for deeper exploration on how the gendered cost burdens have evolved over time and within specific subcategories.
+
+To get a better breakdown of the above plot, we broke up the data to look at year-by-year changes for each category. In this way, we were able to point out specifically in which year we see significant highs or lows in spending differences. An unexpected observation was that spending on transportation was consistently higher for men than women, and this difference has gotten more extreme in recent years. As expected, differences in spending on personal care products and services are positive and seem to be increasing, and the same goes for healthcare. Surprisingly, differences in spending on apparel look to be going in a downward direction after spiking in 2016. From this, some elements we want to investigate further include:
+
+1. Why is transportation such a high expense for males? 
+2. What is the housing burden by gender (% of income spent on housing-related expenses)?
+3. How does spending on personal care products vary by age group?
+4. What is the distribution of spending patterns for apparel and services by gender?
+5. What is the distribution of spending patterns for healthcare sub-categories by gender?
+
+
 
 
 ```{r}
@@ -130,9 +143,13 @@ df_long <- df_long |>
     )
   )
 
-df_long
+
 
 ```
+
+Why do males have higher transportation-related expenses?
+
+
 ```{r}
 df_hi <- df_long |>
   filter(Item %in% c("Housing", "Income after taxes"))
@@ -154,6 +171,11 @@ df_hi_wide <- df_hi_wide %>%
 df_hi_wide
 
 ```
+Transportation emerged as an unexpected category where men consistently spent more than women. Looking deeper into spending patterns for subgroups under transportation, men spend significantly more on vehicle purchases, gasoline insurance, and maintenance. 
+
+
+
+
 ```{r}
 ggplot(df_hi_wide, aes(x = year, y = housing_burden, color = gender)) +
   geom_line(size = 1.2) +
@@ -170,6 +192,13 @@ ggplot(df_hi_wide, aes(x = year, y = housing_burden, color = gender)) +
     plot.title = element_text(hjust = 0.5)
   )
 ```
+
+The amount spent on public transportation is roughly the same for both men and women, which is also surprising to see as men typically seem to have other methods of transportation at their disposal. This is seen by looking at the expenses males spend around purchasing a vehicle. This aligns with the notion that vehicle ownership rates are generally higher for men and men are more likely to own multiple vehicles whereas women tend to stick more to public transit options. This finding adds a layer of nuance to the narrative of universal female economic burden as it shows men have disproportionate costs in categories tied to mobility and car ownership. Some gendered differences can arise out of lifestyle, commute demands, or even cultural norms rather than just structural inequity.
+
+
+Housing burden over time shows structural inequity
+Next, we looked at housing burden, defined as the proportion of housing expenditures to income after taxes
+
 
 ```{r}
 major_groups_main <- c(
@@ -212,6 +241,14 @@ ggplot(df_gender_wide |> filter(age_group == "All"),
 
 ```
 
+Using line plots across the 11 years, we found that women consistently showed a higher housing burden than men, despite the difference in spending by gender declining in recent years. This peaks for both genders around the post-recession recovery period, but the rise is sharper for women. This suggests that women who earn less on average face a greater strain proportionally for housing needs, even when absolute spending is comparable to that of men. The fact that we see this consistently across all age groups further confirms our sentiment.
+
+
+
+Personal Care spending widens over the decade
+As noted early, spending on personal care has only increased over the years with a gap that continues to widen. To better understand this, we investigated personal care as a percent of income. When normalized by income we noticed that women still allocate an extra 2-3% of their share of income to personal care than men. This cost burden disproportionately increased for women in 2018.
+
+
 ```{r}
 
 df_major_all <- df_major |> filter(age_group == "All")
@@ -251,6 +288,11 @@ ggplot(df_diff,
 
 
 ```
+
+When stratified by age group, we noticed that younger women spend a larger share of their income on personal care. After 54 years, there seems to be a convergence in spending patterns, suggesting that appearance-related economic pressures may disproportionately target younger women. This aligns with broader socioeconomic research on gendered expectation around appearance, grooming, and social presentation.
+
+
+
 ```{r}
 transport_items <- c(
   "Cars and trucks, new",
@@ -368,6 +410,14 @@ ggplot(df_transport_summary, aes(x = year, y = exp, group = Item)) +
 
 
 ```
+Another pattern we noticed was the consistently high spending gap within healthcare. Females have consistently spent more on healthcare than men. To better understand this, we looked at expenditure for specific subcategories of healthcare across three time points. 2009 and 2019 had a very wide difference, whereas 2016 had a much lower but still positive difference. We wanted to better understand the breakdown when the spending gap was very high vs very low. Looking at the results, the proportion females spend on drugs remains consistently higher compared to males, even though population has increased and patterns in other subcategories have changed. This aligns with the sentiment that women spend more on prescription medications as they are prescribed them at a higher rate than men. The specifics on out-of-pocket vs insurance cost differences that may arise from this will be discussed later.
+
+
+Apparel spending for men vs women
+Apparel is a topic commonly associated with female spend costs. From the first plot, we clearly saw that this connotation holds, but we wanted to better understand the extent to which the spending difference held up, especially across younger age groups (ie. Do single females under 25 spend more money on apparel for children under 2 years compared to single males?). 
+
+
+
 ```{r}
 df_pc_income <- df_long |>
   filter(
@@ -422,6 +472,12 @@ ggplot(df_pc_income_wide,
 
 
 ```
+
+It is interesting to see that the results do not vary much by age group. There is a pretty consistent pattern of women spending on apparel for women and men spending money on apparel for men. It is interesting to see that there has been an upward trend in recent years of how much men under 25 spend on apparel for women. Young men under 25 are already incentivized to spend money on apparel for women due to social norms around gift giving and expressions of care, but the recent rise in e-commerce and targeted marketing could play a role in the recent rapid rise. Though a bit different from traditional household or healthcare expenditure burdens, this does hint at a voluntary financial outflow that men disproportionately bear.
+
+It is also interesting to see that single women are spending more on apparel for small children compared to men. This difference is especially apparent in the 25-34 age range and could be due to the fact that women in this age group are more likely to have primary custody of children and as a result bear the majority of expenses associated with raising children. This includes but is not limited to apparel-related expenses.
+
+
 ```{r}
 
 apparel_items <- c(
@@ -757,4 +813,520 @@ ggplot(df_heat, aes(x = age_group, y = gender, fill = n_missing)) +
 We noticed that healthcare spending always had positive values for the spending gap and since healthcare spending is inevitable, it makes it an uncontrollable burden, which is why we wanted to delve deeper into the healthcare cost burden by gender. 
 
 Firstly, to visualize if there was a cost burden on the healthcare spending, we used CMS.gov’s Total per-capita Health Expenditure by Age and Sex dataset (including Medicare, Medicaid, Private Health Insurance, and Out of pocket) to plot horizontal bar charts faceted over years using the difference in values (Female - Males). We found that most of the bars were positive for all the age groups except for 65-84, and 0-18. This means that most women have been spending more than men for years. 
+
+
+```{r}
+
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+file_path <- "datasets/healthcare_spendings.xlsx"
+
+target_groups <- c("0-18","19-44","45-64","65-84","85+")
+years <- c("2002","2004","2006","2008","2010","2012","2014","2016","2018","2020")
+
+# ---------- READ TABLE 7 ----------
+df7 <- read_excel(file_path, sheet = "Table 7", skip = 3)
+
+# KEEP ONLY LEVELS (dollars) COLUMNS (first 11 columns only)
+df7 <- df7[, 1:11]
+
+names(df7)[1] <- "AgeGroup"
+
+# FIX numeric columns (remove commas)
+df7[2:11] <- lapply(df7[2:11], function(x) as.numeric(gsub(",", "", x)))
+
+# ---------- EXTRACT MALE & FEMALE BLOCKS (exact positions) ----------
+male_start7   <- which(df7$AgeGroup == "Males")    # row 13
+female_start7 <- which(df7$AgeGroup == "Females")  # row 21
+
+male_block7   <- df7[(male_start7+1):(male_start7+7), ]
+female_block7 <- df7[(female_start7+1):(female_start7+7), ]
+
+# Filter desired age groups ONLY
+male_clean7 <- male_block7 |>
+  filter(AgeGroup %in% target_groups)
+
+female_clean7 <- female_block7 |>
+  filter(AgeGroup %in% target_groups)
+
+# Ensure same order
+male_clean7$AgeGroup <- factor(male_clean7$AgeGroup, levels = target_groups)
+female_clean7$AgeGroup <- factor(female_clean7$AgeGroup, levels = target_groups)
+
+# ---------- PIVOT TO LONG ----------
+male_long7 <- male_clean7 |>
+  pivot_longer(all_of(years), names_to = "Year", values_to = "Male")
+
+female_long7 <- female_clean7 |>
+  pivot_longer(all_of(years), names_to = "Year", values_to = "Female")
+
+df_long7 <- male_long7 |>
+  left_join(female_long7, by = c("AgeGroup","Year")) |>
+  mutate(
+    Year = as.integer(Year),
+    Gap = Female - Male
+  )
+
+# df7_long must contain: AgeGroup, Year, Male, Female, Gap
+df7_gapplot <- df_long7 |>
+  mutate(FemaleAdj = Female - Male) |>
+  distinct(AgeGroup, Year, .keep_all = TRUE)
+
+library(scales)
+
+ggplot(df7_gapplot, aes(y = AgeGroup)) +
+  geom_col(aes(x = FemaleAdj), fill = "#6baed6", alpha = 0.8) +
+  geom_vline(xintercept = 0, color = "black", linewidth = 1) +
+  facet_wrap(~Year, ncol = 5) +
+  scale_x_continuous(labels = label_comma()) +
+  labs(
+    title = "Gender Difference in Total Per-Capita Health Care Spending",
+    subtitle = "Female − Male spending \nBars to the right of zero show where women spend more.",
+    x = "Difference in Spending (USD)",
+    y = ""
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.line.x = element_line(color = "black", linewidth = 1),
+    axis.ticks.x = element_line(color = "black"),
+    strip.text = element_text(face = "bold"),
+    legend.position = "none"
+  )
+ # theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+To summarize the spending gap, we used the dumbbell graph which shows the average healthcare cost burden over the span of 18 years. It helped us see how high the gap was for the age group 85+ and 19-44 on average
+
+```{r}
+
+df_avg7 <- df_long7 |>
+  group_by(AgeGroup) |>
+  summarise(
+    AvgMale = mean(Male, na.rm = TRUE),
+    AvgFemale = mean(Female, na.rm = TRUE)
+  )
+
+df_avg7_long <- df_avg7 |>
+  tidyr::pivot_longer(
+    cols = c(AvgMale, AvgFemale),
+    names_to = "Sex",
+    values_to = "AvgSpend"
+  ) |>
+  mutate(
+    Sex = recode(Sex,
+                 "AvgMale" = "Male",
+                 "AvgFemale" = "Female")
+  )
+
+
+
+ggplot(df_avg7_long, aes(y = AgeGroup, x = AvgSpend, color = Sex)) +
+
+  geom_segment(
+    data = df_avg7,
+    aes(x = AvgMale, xend = AvgFemale,
+        y = AgeGroup, yend = AgeGroup),
+    color = "gray70", linewidth = 2
+  ) +
+
+  geom_point(size = 5) +
+
+  scale_color_manual(
+    values = c("Male" = "#3182bd", "Female" = "#cb181d"),
+    name = "Sex"
+  ) +
+
+  scale_x_continuous(labels = label_comma()) +
+
+  labs(
+    title = "Average total per-capita health care spending, 2002–2020",
+    subtitle = "(Medicare, Medicaid, Private Health Insurance, and Out-of-pocket)",
+    x = "Average Spending (USD)",
+    y = ""
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.line.x = element_line(color = "black"),
+    axis.ticks.x = element_line(color = "black"),
+    legend.position = "right"
+  )
+```
+
+
+  Since the above two graphs included insurance and out-of-pocket data, it left room for some questions like how much the burden is when there is no support. To help us understand this, we use the Out-of-pocket spending data from the same website. 
+
+  We used a line chart to plot the spending gap (Female − Male per-capita out-of-pocket spending), which showed all the values were positive. Upon hovering over the line, we could also see the exact amount difference that year. Except for the age group 0-18, which mostly includes children dependent on parents/guardians, the graphs showed positive lines for all age groups. The values fluctuate throughout the span of 18 years, but never go below zero, which means there has been a healthcare cost burden on women for a long period of time.
+
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(scales)
+
+# ---------- READ TABLE 7-1 ---------- 
+
+df71 <- read_excel(file_path, 
+                   sheet = "Table 7-1", skip = 3) 
+
+# KEEP ONLY LEVELS (dollars) COLUMNS 
+
+df71 <- df71[, 1:11] 
+
+names(df71)[1] <- "AgeGroup" 
+
+# FIX numeric columns 
+df71[2:11] <- lapply(df71[2:11], 
+          function(x) as.numeric(gsub(",", "", x))) 
+
+# ---------- EXTRACT BLOCKS ---------- 
+
+male_start71 <- which(df71$AgeGroup == "Males")
+female_start71 <- which(df71$AgeGroup == "Females")
+male_block71 <- df71[(male_start71+1):(male_start71+7), ] 
+female_block71 <- df71[(female_start71+1):(female_start71+7), ] 
+
+# ---------- CLEAN DATA ---------- 
+
+male_clean71 <- male_block71 |> 
+  filter(AgeGroup %in% target_groups) 
+
+female_clean71 <- female_block71 |> 
+  filter(AgeGroup %in% target_groups)
+
+male_clean71$AgeGroup <- factor(male_clean71$AgeGroup, 
+                                levels = target_groups) 
+
+female_clean71$AgeGroup <- factor(female_clean71$AgeGroup, 
+                                  levels = target_groups) 
+
+# ---------- LONG FORMAT ---------- 
+
+male_long71 <- male_clean71 |> 
+  pivot_longer(all_of(years), 
+               names_to = "Year", 
+               values_to = "Male") 
+
+female_long71 <- female_clean71 |> 
+  pivot_longer(all_of(years), 
+               names_to = "Year", 
+               values_to = "Female") 
+
+df_long71 <- male_long71 |> 
+  left_join(female_long71, by = c("AgeGroup","Year")) |> 
+  mutate( Year = as.integer(Year), Gap = Female - Male ) 
+
+library(plotly)
+# ===============================
+# 1. Compute GAP (Female - Male)
+# ===============================
+
+df_gap_7_1 <- df_long71 |>
+  mutate(Gap = Female - Male)
+
+
+# ===============================
+# 2. Interactive Gender Gap Plot
+# ===============================
+
+p <- ggplot(df_gap_7_1, aes(x = Year, y = Gap, color = AgeGroup)) +
+  geom_line(linewidth = 1.3) +
+  geom_point(size = 2) +
+  geom_hline(yintercept = 0, color = "black", linewidth = 1) +
+  scale_x_continuous(
+    breaks = unique(df_gap_7_1$Year),     # ensures 2002, 2004, ..., 2020 appear
+    limits = range(df_gap_7_1$Year)       # prevents plotly from shifting to 0
+  ) +
+  labs(
+    title = "Out-of-Pocket Spending Gender Gap Over Time",
+    subtitle = "Values represent Female − Male per-capita out-of-pocket spending",
+    x = "Year",
+    y = "Gap (USD)",
+    color = "Age Group"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "right"
+  )
+
+ggplotly(p)
+
+```
+
+
+To summarize the burden and the spending gap, we used the dumbbell graph. The dots representing average female spending are ahead of those for average male spending across all age groups over the 18-year span, which tells us that women have had to spend more out of pocket over the years. 
+
+
+```{r}
+
+
+
+# ---------- AVERAGE SPENDING ---------- 
+
+df_avg71 <- df_long71 |> 
+  group_by(AgeGroup) |> 
+  summarise( AvgMale = mean(Male, na.rm = TRUE), 
+             AvgFemale = mean(Female, na.rm = TRUE) )
+
+# Create long format with Sex column for easy legend
+df_avg71_long <- df_avg71 |>
+  tidyr::pivot_longer(
+    cols = c(AvgMale, AvgFemale),
+    names_to = "Sex",
+    values_to = "AvgSpend"
+  ) |>
+  mutate(
+    Sex = recode(Sex,
+                 "AvgMale" = "Male",
+                 "AvgFemale" = "Female")
+  )
+
+ggplot(df_avg71_long, aes(y = AgeGroup, x = AvgSpend, color = Sex)) +
+
+  # Dumbbell connecting segment
+  geom_segment(
+    data = df_avg71,
+    aes(x = AvgMale, xend = AvgFemale,
+        y = AgeGroup, yend = AgeGroup),
+    color = "gray70", linewidth = 2
+  ) +
+
+  # Points for each sex
+  geom_point(size = 5) +
+
+  # Nice legend colors
+  scale_color_manual(
+    values = c("Male" = "#3182bd", "Female" = "#cb181d"),
+    name = "Sex"
+  ) +
+
+  scale_x_continuous(labels = label_comma()) +
+
+  labs(
+    title = "Average per-capita out-of-pocket spending, 2002–2020",
+    subtitle = "Women Consistently Pay More Out-of-Pocket at Every Age",
+    x = "Average Spending (USD)",
+    y = ""
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.line.x = element_line(color = "black"),
+    axis.ticks.x = element_line(color = "black"),
+    legend.position = "right"
+  )
+
+```
+
+We noticed a pattern in the spending gap in all the graphs; it was the highest in the age group 85+ and the second highest in the age group 19-44. 
+
+For the age group 85+, we noticed the spending gap is extreme. This could be because of the higher life expectancy of women as compared to men. (Zarulli V et al, 2018). Even though this is a per-capita data, we think the men who exist in this dataset show “survival bias,” which means because women live longer, the men who survived for this age group are already healthy or need less medical support. 
+
+The other age group that showed a high spending gap was 19-44, which made us question whether the 19-44 gap had something to do with the “biological clock” and the evolutionary expectation from women to reproduce. With the help of CDC’s Natality data, we were able to visualize that most women give birth between the ages of 20 and 34, while the age groups 15-19 and 40-44 show significant birth counts. This age range is consistent with the 19-44 category we see in both out-of-pocket and total health care spending graphs, where the spending gap is high.
+
+
+```{r}
+
+
+library(readr)
+library(dplyr)
+library(ggplot2)
+
+b1 <- read_csv("datasets/Natality_2003_2006.csv")
+b2 <- read_csv("datasets/Natality_2007_2024.csv")
+
+births_raw <- bind_rows(b1, b2)
+
+#cleaning
+births_clean <- births_raw |>
+  select(Age = `Age of Mother 9`, Births) |>
+  filter(!is.na(Age), Age != "Total") |>
+  
+  # CLEAN & SHORTEN AGE LABELS
+  mutate(
+    Age = trimws(Age),
+    Age = recode(Age,
+      "Under 15 years"      = "<15",
+      "15-19 years"         = "15-19",
+      "20-24 years"         = "20-24",
+      "25-29 years"         = "25-29",
+      "30-34 years"         = "30-34",
+      "35-39 years"         = "35-39",
+      "40-44 years"         = "40-44",
+      "45-49 years"         = "45-49",
+      "50 years and over"   = "50<"
+    )
+  ) |>
+  group_by(Age) |>
+  summarise(Births = sum(Births, na.rm = TRUE)) |>
+  ungroup() |>
+  mutate(
+    Age = factor(
+      Age,
+      levels = c("<15","15-19","20-24","25-29","30-34",
+                 "35-39","40-44","45-49","50<")
+    )
+  )
+
+
+ggplot(births_clean, aes(x = Age, y = Births)) +
+  geom_col(fill = "darkgreen", alpha = 0.7) +
+  scale_y_continuous(labels = function(x) paste0(x / 1e6, "M")) +
+  labs(
+    title = "U.S. Birth Counts by Maternal Age (2003–2024)",
+    x = "Maternal Age Group",
+    y = "Total Births"
+  ) +
+  theme_minimal(base_size = 16)
+```
+
+
+
+  To further analyse the cost burden on women, we decided to see if it holds true for a small dataset. We wanted to see if there is a gendered cost burden midst people in similar situations. In our case, it was the fall 2025 cohort of data science graduate students at columbia university. Our survey received 31 responses are graphed below. 
+
+
+```{r}
+
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(janitor)
+
+# ==============================
+# 1. LOAD RAW SURVEY DATA
+# ==============================
+
+df_raw <- read_excel("datasets/response.xlsx") |>
+  janitor::clean_names()
+
+# ==============================
+# 2. RENAME COLUMNS (clean + short)
+# ==============================
+
+df <- df_raw |>
+  rename(
+    employed    = are_you_currently_employed_while_in_school,
+    hygiene     = in_a_typical_month_approximately_how_much_do_you_spend_if_anything_on_toiletries_personal_care_items_medications_otc_or_prescribed_and_grooming_services_examples_razors_shampoo_skincare_makeup_deodorant_prescriptions_otc_meds_haircuts_waxing_nail_care_menstrual_hygiene_products_etc,
+    apparel     = approximately_how_much_do_you_spend_per_month_on_apparel_and_accessories_if_anything_examples_clothing_shoes_jewelry_bags_seasonal_items,
+    gender      = gender_identity,
+    rent        = monthly_rent_your_personal_share,
+    proxCampus  = what_factors_influenced_your_choice_of_where_you_currently_live_rank_from_highest_to_lowest_priority_proximity_to_campus,
+    proxTransit = what_factors_influenced_your_choice_of_where_you_currently_live_rank_from_highest_to_lowest_priority_proximity_to_public_transportation,
+    safer       = what_factors_influenced_your_choice_of_where_you_currently_live_rank_from_highest_to_lowest_priority_safer_neighbourhood,
+    security    = what_factors_influenced_your_choice_of_where_you_currently_live_rank_from_highest_to_lowest_priority_building_security_features_eg_cameras_doorman_locks_etc,
+    amenitiesB  = what_factors_influenced_your_choice_of_where_you_currently_live_rank_from_highest_to_lowest_priority_building_amenities_eg_gym_elevator_co_working_space,
+    amenitiesA  = what_factors_influenced_your_choice_of_where_you_currently_live_rank_from_highest_to_lowest_priority_apartment_amenities_eg_size_in_unit_laundry_appliances
+  )
+
+# ==============================
+# 3. CLEAN NUMERIC FUNCTIONS
+# ==============================
+
+clean_num <- function(x) {
+  x |>
+    as.character() |>
+    (\(z) gsub(",", "", z))() |>
+    (\(z) gsub("\\$", "", z))() |>
+    (\(z) gsub(" ", "", z))() |>
+    (\(z) gsub("[^0-9.]", "", z))() |>
+    as.numeric()
+}
+
+clean_rent <- function(x) {
+
+  x <- as.character(x)
+  x[x == "" | is.na(x)] <- NA
+
+  # Remove $, commas, extra spaces
+  x <- gsub("\\$", "", x)
+  x <- trimws(x)
+
+  # universal dash: -, –, —, −
+  dash_pattern <- "[\u002D\u2013\u2014\u2212]"
+
+  # detect ranges
+  is_range <- grepl(dash_pattern, x)
+
+  # midpoint for ranges
+  x[is_range] <- sapply(x[is_range], function(v) {
+    parts <- unlist(strsplit(v, dash_pattern))
+    nums  <- as.numeric(gsub(",", "", parts))
+    mean(nums, na.rm = TRUE)
+  })
+
+  # convert single values
+  x <- as.numeric(gsub(",", "", x))
+
+  return(x)
+}
+
+# ==============================
+# 4. APPLY CLEANING SAFELY
+# ==============================
+
+df_clean <- df |>
+  mutate(
+    hygiene = clean_num(hygiene),
+    apparel = clean_num(apparel),
+    rent    = clean_rent(rent)
+  )
+
+# ==============================
+# 5. RANKING COLUMNS
+# ==============================
+
+rank_cols <- c("proxCampus", "proxTransit", "safer",
+               "security", "amenitiesB", "amenitiesA")
+
+df_clean <- df_clean |>
+  mutate(across(all_of(rank_cols), clean_num))
+
+# ==============================
+# 6. LONG FORMAT FOR RANK VISUALS
+# ==============================
+
+df_rank_long <- df_clean |>
+  select(gender, all_of(rank_cols)) |>
+  pivot_longer(
+    cols = all_of(rank_cols),
+    names_to = "factor",
+    values_to = "rank"
+  ) |>
+  mutate(
+    factor = recode(factor,
+      proxCampus   = "Proximity to campus",
+      proxTransit  = "Public transit access",
+      safer        = "Safer neighbourhood",
+      security     = "Building security",
+      amenitiesB   = "Building amenities",
+      amenitiesA   = "Apartment amenities"
+    )
+  )
+
+# ==============================
+# 7. SUMMARY STATISTICS
+# ==============================
+
+df_summary <- df_clean |>
+  group_by(gender) |>
+  summarise(
+    median_hygiene = median(hygiene, na.rm = TRUE),
+    median_apparel = median(apparel, na.rm = TRUE),
+    median_rent    = median(rent, na.rm = TRUE),
+    n = n()
+  )
+
+```
+
+
+
+
+
+
 
