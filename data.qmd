@@ -8,12 +8,21 @@ Identify one or more data sources (see II. D. above) that you propose to draw on
 
 (suggested length: one paragraph)
 
-https://www.cms.gov/data-research/statistics-trends-and-reports/national-health-expenditure-data/age-and-sex
 
+Sneha:
 
 https://www.bls.gov/cex/tables/cross-tab/mean.htm#cu-singlesbyage
 
-https://wonder.cdc.gov/natality.html for pregnancy rate
+
+
+Kaushiki: 
+
+https://www.cms.gov/data-research/statistics-trends-and-reports/national-health-expenditure-data/age-and-sex
+I downloaded the Age and Sex tables from this website and used Table 7(total health spending per capita) and Table 7-1(out of pocket spending per-capita). Table 7 had 28 rows and 20 columns. I used data from row 13 till 28, column 1 to column 11, which covered values for males and females. The data was further cleaned to remove repeating age groups i.e., the rows for age groups 19-64, 65+ were not used as they were included on other breakdowns. The same format was used for table 7-1.
+
+
+https://wonder.cdc.gov/natality.html
+I filled the form on the website to request two csvs of birth count data by age group for year 2003 - 2006 and 2007 - 2024. The csvs have "Notes","Age of Mother 9","Age of Mother 9 Code", and "Births" columns. Then, I merged the data in R to form a dataframe "births_raw," with 4 columns and 61 rows. 
 
 
 ## Missing value analysis
