@@ -4,3 +4,17 @@
 Discuss: main takeaways of your exploration, limitations, future directions, lessons learned.
 
 (suggested length: one paragraph)
+
+
+Takeway:
+We wanted to analyse the spending gap by gender and most of the findings aligned with our expectations. However some results were unexpected for example, men spending more on transportation. We were later able to see that the spending habit of men aligned more with their preferences rather than biological or societal expectaions. Another unexpected observation was the extreme spending gap for age group 85+, we used existing research to reason that it could be due to women's longer life expectancy. While the spending gaps for other categories were not as high as we expected, they existed for all age groups in out-of-pocket data. In general, we observed the main trend for uncontrollable categories like healthcare has mostly been women having to spend more than men throughout the years after the age of 18. 
+
+Limitations: 
+A lot of our datasets uses survey data which could be very subjective and leaves space for human error. Further, for the survey we did in-class, we did not have enough responses to have strong results to analyse. The ratio for the number of men who answered the survey to that of women was low so we had to use average values to form observations. 
+
+Future directions:
+We could explore the gender based cost burdens for more trends,
+
+Lesson learned:
+
+
