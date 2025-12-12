@@ -6,31 +6,217 @@
 
 Identify one or more data sources (see II. D. above) that you propose to draw on for the project. For each, describe how the data are collected and by whom. Describe the format of the data, the frequency of updates, dimensions, and any other relevant information. Note any issues / problems with the data, either known or that you discover.  Carefully document your sources with links to the precise data sources that you used. If that is not possible (for example if your data is not available online, then explain that clearly.)
 
-(suggested length: one paragraph)
-
-
-Sneha:
-
 https://www.bls.gov/cex/tables/cross-tab/mean.htm#cu-singlesbyage
+The U.S. Census Bureau collects consumer expenditure data on behalf of the Bureau of Labor Statistics (BLS) every year. 
 
-test
+We chose to focus specifically on data for male and female singles grouped by age of reference.
+Our data includes ~200 expenditure categories (ranging from essential to discretionary expenses) x age groups (7 columns). Each dataset displayed this information for a particular gender for a particular year. In total we had 22 datasets spanning from 2009-2019 for male and females. We specifically chose this time range as it was between the Great Recession and COVID-19, two events that play a strong influence on consumer spending and financial stability. 
 
+One challenge we encountered was due to the nature of the data. Some table cells were marked with codes (i.e., a, b, c- representing no data reported, too small to display, or large sampling errors). Codes a and b were treated as missing values in the analysis. We retained the values for code c in our analysis to preserve as much information as possible, while acknowledging that estimates for these cases may be less precise. While this allowed us to maintain consistency, it also highlighted that some subgroups may have less reliable or incomplete data, and caution should be used when interpreting results for these cases.
 
+https://forms.gle/TSWnHfM7nQpimnQ59
+We also conducted a brief qualitative and quantitative survey of 31 students in our Data Science masters program to get a better sense of lifestyle patterns among young adults with various levels of income who live in a city with a high cost of living.
 
-Kaushiki: 
 
 https://www.cms.gov/data-research/statistics-trends-and-reports/national-health-expenditure-data/age-and-sex
-I downloaded the Age and Sex tables from this website and used Table 7(total health spending per capita) and Table 7-1(out of pocket spending per-capita). Table 7 had 28 rows and 20 columns. I used data from row 13 till 28, column 1 to column 11, which covered values for males and females. The data was further cleaned to remove repeating age groups i.e., the rows for age groups 19-64, 65+ were not used as they were included on other breakdowns. The same format was used for table 7-1.
+We downloaded the Age and Sex tables from this website and used Table 7 (total health spending per capita) and Table 7-1 (out of pocket spending per-capita). Table 7 had 28 rows and 20 columns. We used data from row 13 till 28, column 1 to column 11, which covered values for males and females. The data was further cleaned to remove repeating age groups i.e., the rows for age groups 19-64, 65+ were not used as they were included on other breakdowns. The same format was used for table 7-1.
 
 
 https://wonder.cdc.gov/natality.html
-I filled the form on the website to request two csvs of birth count data by age group for year 2003 - 2006 and 2007 - 2024. The csvs have "Notes","Age of Mother 9","Age of Mother 9 Code", and "Births" columns. Then, I merged the data in R to form a dataframe "births_raw," with 4 columns and 61 rows. 
+We filled the form on the website to request two CSVs of birth count data by age group for year 2003 - 2006 and 2007 - 2024. The csvs have "Notes","Age of Mother 9","Age of Mother 9 Code", and "Births" columns. Then, I merged the data in R to form a dataframe "births_raw," with 4 columns and 61 rows. 
 
+
+```{r}
+# Load in all 22 datasets for single females and males from 2009-2019
+library(tidyverse)
+# install.packages("janitor")
+library(janitor)
+
+
+files <- list.files("/Users/snehajaikumar/EDAV/final_datasets", pattern = "*.xlsx", full.names = TRUE)
+manual_header <- c(
+  "Item",
+  "All",
+  "Under 25 years",
+  "25-34 years",
+  "35-44 years",
+  "45-54 years",
+  "55-64 years",
+  "65 years and older"
+)
+
+clean_numeric <- function(x) {
+  x |>
+    str_replace("^[abc]/\\s*", "") |>   # remove a/, b/, c/ and any space after
+    na_if("") |>                       # empty string → NA
+    as.numeric()
+}
+
+
+read_cex_file <- function(filepath) {
+
+  gender <- if (str_detect(filepath, "females")) "Female" else "Male"
+  year   <- str_extract(filepath, "\\d{4}") |> as.numeric()
+
+  raw <- read_excel(filepath, col_names = FALSE)
+
+
+  names(raw) <- manual_header
+
+  # Add metadata
+   df <- raw |>
+      slice(47:229) |>       
+      janitor::remove_empty("cols") |>
+      filter(!(Item != "" & if_all(-Item, is.na))) |> filter(Item != "Average annual expenditures")
+   
+   gift_start <- which(df$Item %in% c("Gifts of goods and services",
+                                   "Gifts of goods and services, total"))
+   gift_end   <- which(df$Item == "All other gifts")
+   
+   
+
+  if (length(gift_start) == 1 && length(gift_end) == 1) {
+    df <- df[-(gift_start:gift_end), ]
+  }
+   
+    df <- df |> mutate(
+        gender = gender,
+        year = year
+      ) |>
+     mutate(across(-c(Item, gender, year), clean_numeric)) 
+  
+
+  return(df)
+}
+
+df_main <- map_df(files, read_cex_file)
+```
+
+```{r}
+library(dplyr)
+library(tidyr)
+
+df_long <- df_main |>
+  pivot_longer(
+    cols = -c(Item, gender, year),  
+    names_to = "age_group",
+    values_to = "expenditure"
+  ) |>
+  mutate(
+    age_group = factor(
+      age_group,
+      levels = c(
+        "All",
+        "Under 25 years",
+        "25-34 years",
+        "35-44 years",
+        "45-54 years",
+        "55-64 years",
+        "65 years and older"
+      ),
+      ordered = TRUE
+    )
+  )
+
+df_missing <- df_long
+```
 
 ## Missing value analysis
 
 2.2 Missing value analysis
 
-Describe any patterns you discover in missing values. If no values are missing, graphs should still be included showing that.
+For our dataset, the only column which had missing value was the expenditure column. We started by examining for which items the missing values were highest.
 
-(suggested: 2 graphs plus commentary)
+```{r}
+df_missing |>
+  filter(is.na(expenditure)) |>
+  count(Item, sort = TRUE) |>
+  slice_head(n = 20) |>
+  ggplot(aes(x = reorder(Item, n), y = n)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(
+    title = "Items With the Most Missing Expenditure Values",
+    x = "Item",
+    y = "Number of Missing Values"
+  ) 
+```
+
+Out of the ~90 missing values, the majority fell into ‘other’ categories as well as categories for which data might be harder to collect such as apparel for children under 2, purchasing new vehicles, tax stimulus, and personal services, which is a category of household operations. A lot of these expenses are irregular and may consist of a small sample size, for which it would be harder to collect and report accurate data. To explore how these trends changed by gender and age, we made two heatmaps:
+
+```{r}
+top_items <- df_missing |>
+  filter(is.na(expenditure)) |>
+  count(Item, sort = TRUE) |>
+  slice_head(n = 20) |>
+  pull(Item)
+
+df_missing |>
+  filter(Item %in% top_items) |>
+  mutate(is_missing = ifelse(is.na(expenditure), 1, 0)) |>
+  count(Item, gender, wt = is_missing) |>
+  ggplot(aes(x = gender, y = reorder(Item, n), fill = n)) +
+  geom_tile(color = "white") +
+  scale_fill_gradientn(
+    colours = c("#DEEBF7","#9ABBDD","#4A7BBF","#08306B"),
+    values = scales::rescale(c(0, 1, 5, max(df_heat$n_missing))),
+    name = "Missing Count"
+  )  +
+  labs(
+    title = "Heatmap of Missing Values by Item and Gender (Top 20 Items)",
+    x = "Gender",
+    y = "Item",
+    fill = "Missing\nCount"
+  )
+
+# SECOND PLOT
+df_heat_item_age <- df_missing |>
+  filter(Item %in% top_items) |>
+  mutate(is_missing = ifelse(is.na(expenditure), 1, 0)) |>
+  count(Item, age_group, wt = is_missing) |>
+  mutate(n = as.integer(n)) |>
+  complete(Item, age_group, fill = list(n = 0))
+
+ggplot(df_heat_item_age,
+       aes(x = age_group, y = reorder(Item, n), fill = n)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(
+    low = "#deebf7",
+    high = "#08306b",
+    name = "Missing\nCount"
+  ) +
+  labs(
+    title = "Missing Expenditure Values by Item and Age Group",
+    x = "Age Group",
+    y = "Item"
+  ) 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+The majority of the missing values for other vehicles came from females, and by age group this was highest for 65 years and older. Older adults, particularly women, may be less likely to purchase additional vehicles, so fewer survey respondents fall into this category. Small sample sizes could have led to more missing values. This could also imply that certain expenditure categories may be more relevant to men than women .In general, females had more missing values than males, and under 25 years consistently had more missing values across items. Young adults often have smaller or more variable spending patterns, live with parents, or have irregular incomes, which can make data harder to collect reliably. The trend of seeing more missing values among females and among young adults was confirmed in our last heatmap, as we see most missing values among female young adults.
+
+```{r}
+df_heat <- df_long |>
+  mutate(is_missing = ifelse(is.na(expenditure), 1, 0)) |>
+  group_by(age_group, gender) |>
+  summarise(n_missing = sum(is_missing), .groups = "drop") |>
+  complete(age_group, gender, fill = list(n_missing = 0))
+
+ggplot(df_heat, aes(x = age_group, y = gender, fill = n_missing)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(
+    low = "#deebf7",  
+    high = "#08306b",
+    name = "Missing Count"
+  )  +
+  labs(
+    title = "Missing Values by Age Group and Gender",
+    x = "Age Group",
+    y = "Gender",
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
