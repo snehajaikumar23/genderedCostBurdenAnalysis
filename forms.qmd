@@ -1,0 +1,246 @@
+---
+title: "forms"
+editor: visual
+---
+
+```{r}
+
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(janitor)
+
+# ==============================
+# 1. LOAD RAW SURVEY DATA
+# ==============================
+
+df_raw <- read_excel("datasets/response.xlsx") |>
+  janitor::clean_names()
+
+# ==============================
+# 2. RENAME COLUMNS (clean + short)
+# ==============================
+
+df <- df_raw |>
+  rename(
+    employed    = are_you_currently_employed_while_in_school,
+    hygiene     = in_a_typical_month_approximately_how_much_do_you_spend_if_anything_on_toiletries_personal_care_items_medications_otc_or_prescribed_and_grooming_services_examples_razors_shampoo_skincare_makeup_deodorant_prescriptions_otc_meds_haircuts_waxing_nail_care_menstrual_hygiene_products_etc,
+    apparel     = approximately_how_much_do_you_spend_per_month_on_apparel_and_accessories_if_anything_examples_clothing_shoes_jewelry_bags_seasonal_items,
+    gender      = gender_identity,
+    rent        = monthly_rent_your_personal_share,
+    proxCampus  = what_factors_influenced_your_choice_of_where_you_currently_live_rank_from_highest_to_lowest_priority_proximity_to_campus,
+    proxTransit = what_factors_influenced_your_choice_of_where_you_currently_live_rank_from_highest_to_lowest_priority_proximity_to_public_transportation,
+    safer       = what_factors_influenced_your_choice_of_where_you_currently_live_rank_from_highest_to_lowest_priority_safer_neighbourhood,
+    security    = what_factors_influenced_your_choice_of_where_you_currently_live_rank_from_highest_to_lowest_priority_building_security_features_eg_cameras_doorman_locks_etc,
+    amenitiesB  = what_factors_influenced_your_choice_of_where_you_currently_live_rank_from_highest_to_lowest_priority_building_amenities_eg_gym_elevator_co_working_space,
+    amenitiesA  = what_factors_influenced_your_choice_of_where_you_currently_live_rank_from_highest_to_lowest_priority_apartment_amenities_eg_size_in_unit_laundry_appliances
+  )
+
+# ==============================
+# 3. CLEAN NUMERIC FUNCTIONS
+# ==============================
+
+clean_num <- function(x) {
+  x |>
+    as.character() |>
+    (\(z) gsub(",", "", z))() |>
+    (\(z) gsub("\\$", "", z))() |>
+    (\(z) gsub(" ", "", z))() |>
+    (\(z) gsub("[^0-9.]", "", z))() |>
+    as.numeric()
+}
+
+clean_rent <- function(x) {
+
+  x <- as.character(x)
+  x[x == "" | is.na(x)] <- NA
+
+  # Remove $, commas, extra spaces
+  x <- gsub("\\$", "", x)
+  x <- trimws(x)
+
+  # universal dash: -, –, —, −
+  dash_pattern <- "[\u002D\u2013\u2014\u2212]"
+
+  # detect ranges
+  is_range <- grepl(dash_pattern, x)
+
+  # midpoint for ranges
+  x[is_range] <- sapply(x[is_range], function(v) {
+    parts <- unlist(strsplit(v, dash_pattern))
+    nums  <- as.numeric(gsub(",", "", parts))
+    mean(nums, na.rm = TRUE)
+  })
+
+  # convert single values
+  x <- as.numeric(gsub(",", "", x))
+
+  return(x)
+}
+
+# ==============================
+# 4. APPLY CLEANING SAFELY
+# ==============================
+
+df_clean <- df |>
+  mutate(
+    hygiene = clean_num(hygiene),
+    apparel = clean_num(apparel),
+    rent    = clean_rent(rent)
+  )
+
+# ==============================
+# 5. RANKING COLUMNS
+# ==============================
+
+rank_cols <- c("proxCampus", "proxTransit", "safer",
+               "security", "amenitiesB", "amenitiesA")
+
+df_clean <- df_clean |>
+  mutate(across(all_of(rank_cols), clean_num))
+
+# ==============================
+# 6. LONG FORMAT FOR RANK VISUALS
+# ==============================
+
+df_rank_long <- df_clean |>
+  select(gender, all_of(rank_cols)) |>
+  pivot_longer(
+    cols = all_of(rank_cols),
+    names_to = "factor",
+    values_to = "rank"
+  ) |>
+  mutate(
+    factor = recode(factor,
+      proxCampus   = "Proximity to campus",
+      proxTransit  = "Public transit access",
+      safer        = "Safer neighbourhood",
+      security     = "Building security",
+      amenitiesB   = "Building amenities",
+      amenitiesA   = "Apartment amenities"
+    )
+  )
+
+# ==============================
+# 7. SUMMARY STATISTICS
+# ==============================
+
+df_summary <- df_clean |>
+  group_by(gender) |>
+  summarise(
+    median_hygiene = median(hygiene, na.rm = TRUE),
+    median_apparel = median(apparel, na.rm = TRUE),
+    median_rent    = median(rent, na.rm = TRUE),
+    n = n()
+  )
+
+#df_summary
+
+
+
+```
+
+\
+
+bump chart\
+\
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Compute average priority rank for each gender + factor
+df_bump <- df_rank_long |>
+  group_by(gender, factor) |>
+  summarise(mean_rank = mean(rank, na.rm = TRUE), .groups = "drop") |>
+  group_by(gender) |>
+  mutate(priority = rank(mean_rank, ties.method = "first")) |>  # 1 = highest priority
+  ungroup()
+
+ggplot(df_bump, aes(x = gender, y = priority, group = factor, color = factor)) +
+  geom_line(linewidth = 1.3) +
+  geom_point(size = 4) +
+  scale_y_reverse(breaks = 1:6) +   # 1 at top
+  labs(
+    title = "Priority Ranking of Housing Factors by Gender",
+    subtitle = "1 = highest priority • 6 = lowest priority",
+    x = "Gender",
+    y = "Priority Rank",
+    color = "Housing Factor"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "right",
+    panel.grid.minor = element_blank()
+  )
+
+
+```
+
+while convenience is a common factor for everyone, women tend to choose proximity to campus due to safety reasons.
+
+Box plots
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(forcats)
+
+# 1. Long data -----------------------------------------------------------
+df_spend_long <- df_clean |>
+  select(gender, hygiene, apparel, rent) |>
+  pivot_longer(
+    cols = c(hygiene, apparel, rent),
+    names_to = "category",
+    values_to = "spend"
+  ) |>
+  mutate(
+    category = factor(
+      category,
+      levels = c("apparel", "hygiene", "rent"),
+      labels = c("Apparel", "Hygiene / Care", "Rent")
+    )
+  )
+
+# 2. Compute medians per category ----------------------------------------
+median_order <- df_spend_long |>
+  group_by(category) |>
+  summarise(med = median(spend, na.rm = TRUE)) |>
+  arrange(desc(med))
+
+# Reorder category factor based on **descending medians**
+df_spend_long <- df_spend_long |>
+  mutate(category = fct_reorder(category, spend, .fun = median, .desc = TRUE))
+
+# 3. Plot -----------------------------------------------------------------
+ggplot(df_spend_long, aes(x = gender, y = spend, color = gender)) +
+  geom_jitter(width = 0.12, alpha = 0.6, size = 2) +
+  geom_boxplot(width = 0.28, fill = NA, color = "black", outlier.shape = NA) +
+  
+  facet_wrap(~ category, scales = "free_y", nrow = 1) +
+  
+  scale_color_manual(values = c("Female" = "#E85A84", "Male" = "#3A6FA8")) +
+  
+  labs(
+    title = "Monthly Spending by Gender",
+    x = "Gender",
+    y = "Spending (USD)"
+  ) +
+  
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "none",
+    strip.text = element_text(size = 13, face = "bold"),
+    plot.title = element_text(size = 18, face = "bold"),
+    plot.subtitle = element_text(size = 12),
+    axis.text = element_text(size = 11),
+    axis.title = element_text(size = 12),
+    panel.spacing = unit(1, "lines")
+  )
+
+```
+
+\
+\
