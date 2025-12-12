@@ -153,6 +153,12 @@ top_items <- df_missing |>
   slice_head(n = 20) |>
   pull(Item)
 
+df_heat <- df_long |>
+  mutate(is_missing = ifelse(is.na(expenditure), 1, 0)) |>
+  group_by(age_group, gender) |>
+  summarise(n_missing = sum(is_missing), .groups = "drop") |>
+  complete(age_group, gender, fill = list(n_missing = 0))
+
 df_missing |>
   filter(Item %in% top_items) |>
   mutate(is_missing = ifelse(is.na(expenditure), 1, 0)) |>
@@ -199,11 +205,6 @@ ggplot(df_heat_item_age,
 The majority of the missing values for other vehicles came from females, and by age group this was highest for 65 years and older. Older adults, particularly women, may be less likely to purchase additional vehicles, so fewer survey respondents fall into this category. Small sample sizes could have led to more missing values. This could also imply that certain expenditure categories may be more relevant to men than women .In general, females had more missing values than males, and under 25 years consistently had more missing values across items. Young adults often have smaller or more variable spending patterns, live with parents, or have irregular incomes, which can make data harder to collect reliably. The trend of seeing more missing values among females and among young adults was confirmed in our last heatmap, as we see most missing values among female young adults.
 
 ```{r}
-df_heat <- df_long |>
-  mutate(is_missing = ifelse(is.na(expenditure), 1, 0)) |>
-  group_by(age_group, gender) |>
-  summarise(n_missing = sum(is_missing), .groups = "drop") |>
-  complete(age_group, gender, fill = list(n_missing = 0))
 
 ggplot(df_heat, aes(x = age_group, y = gender, fill = n_missing)) +
   geom_tile(color = "white") +
